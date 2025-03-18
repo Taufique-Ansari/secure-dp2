@@ -1,34 +1,21 @@
-import { NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
-import type { NextRequest } from 'next/server';
+import { withAuth } from "next-auth/middleware";
+import { NextResponse } from "next/server";
 
-export async function middleware(request: NextRequest) {
-  const token = await getToken({ req: request });
-  
-  // Check if this is an admin route
-  if (request.nextUrl.pathname.startsWith('/admin')) {
-    if (!token) {
-      return NextResponse.redirect(new URL('/login', request.url));
+export default withAuth(
+  function middleware(req) {
+    const token = req.nextauth.token;
+    const isAdminRoute = req.nextUrl.pathname.startsWith('/admin');
+
+    if (isAdminRoute && token?.isAdmin !== true) {
+      return NextResponse.redirect(new URL('/', req.url));
     }
-
-    // Check if user is admin
-    const adminCheckResponse = await fetch(new URL('/api/auth/check-admin', request.url), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email: token.email }),
-    });
-
-    const { isAdmin } = await adminCheckResponse.json();
-
-    if (!isAdmin) {
-      return NextResponse.redirect(new URL('/', request.url));
-    }
+  },
+  {
+    callbacks: {
+      authorized: ({ token }) => !!token
+    },
   }
-
-  return NextResponse.next();
-}
+);
 
 export const config = {
   matcher: ['/admin/:path*']

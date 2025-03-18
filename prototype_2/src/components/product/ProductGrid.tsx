@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import ProductCard from './ProductCard';
 import { Product } from '@/types';
+import { toast } from 'react-hot-toast';
 
 export default function ProductGrid() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -13,23 +14,21 @@ export default function ProductGrid() {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        console.log('Fetching products...');
         
         const response = await fetch('/api/products');
-        console.log('Response status:', response.status);
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const data = await response.json();
-        console.log('Products data:', data);
         
-        if (!Array.isArray(data)) {
-          throw new Error('Expected array of products');
+        // Check if the response has the expected structure
+        if (!data || !data.success || !Array.isArray(data.products)) {
+          throw new Error('Invalid response format from API');
         }
         
-        setProducts(data);
+        setProducts(data.products);
         setError(null);
       } catch (err) {
         console.error('Error fetching products:', err);
@@ -78,12 +77,24 @@ export default function ProductGrid() {
       <div className="text-center py-10">
         <p className="text-gray-500">No products found.</p>
         <p className="text-sm text-gray-400 mt-2">Try seeding the database first.</p>
-        <a 
-          href="/api/seed"
-          className="mt-4 inline-block text-blue-500 hover:underline"
+        <button 
+          onClick={async () => {
+            try {
+              const response = await fetch('/api/seed');
+              if (response.ok) {
+                toast.success('Database seeded successfully');
+                window.location.reload();
+              } else {
+                toast.error('Failed to seed database');
+              }
+            } catch (err) {
+              toast.error('Error seeding database');
+            }
+          }}
+          className="mt-4 inline-block px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
         >
           Seed Database
-        </a>
+        </button>
       </div>
     );
   }

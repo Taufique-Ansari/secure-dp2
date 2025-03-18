@@ -46,6 +46,7 @@ export default function PrivacyDemoPage() {
         const privatizedPrice = privatizeAggregate(item.price, epsilon);
         const privatizedQuantity = privatizeAggregate(item.quantity, epsilon);
 
+
         iterationResult[item._id] = {
           price: privatizedPrice,
           quantity: privatizedQuantity,
@@ -54,6 +55,7 @@ export default function PrivacyDemoPage() {
             quantity: Math.abs(privatizedQuantity - item.quantity)
           }
         };
+        console.log("Testing" + privatizedPrice, item.price);
 
         // Accumulate errors
         totalError[item._id].price += iterationResult[item._id].errors.price;

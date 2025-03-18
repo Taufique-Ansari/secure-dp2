@@ -6,7 +6,7 @@ import { ProductModel } from '@/models/Product';
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -15,7 +15,8 @@ export async function GET(
     }
 
     await dbConnect();
-    const product = await ProductModel.findById(params.id);
+    const { id } = await params;
+    const product = await ProductModel.findById(id);
 
     if (!product) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
@@ -33,7 +34,7 @@ export async function GET(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -43,9 +44,10 @@ export async function PUT(
 
     const body = await request.json();
     await dbConnect();
+    const { id } = await params;
 
     const product = await ProductModel.findByIdAndUpdate(
-      params.id,
+      id,
       { $set: body },
       { new: true }
     );
@@ -66,7 +68,7 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -75,13 +77,14 @@ export async function DELETE(
     }
 
     await dbConnect();
-    const product = await ProductModel.findByIdAndDelete(params.id);
+    const { id } = await params;
+    const product = await ProductModel.findByIdAndDelete(id);
 
     if (!product) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ message: 'Product deleted successfully' });
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting product:', error);
     return NextResponse.json(

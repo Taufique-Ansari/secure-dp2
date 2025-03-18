@@ -51,7 +51,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           <div>
             <span className="font-bold">${product.price.toFixed(2)}</span>
             <div className="text-sm text-gray-500">
-              Rating: {privatizedRating.toFixed(1)} ★
+              Rating: {Math.min(5,Math.max(1, privatizedRating)).toFixed(1)} ★
               <span className="ml-2">{privatizedViews} views</span>
             </div>
           </div>

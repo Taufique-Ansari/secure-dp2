@@ -1,0 +1,40 @@
+{
+  "_format": "hh-sol-cache-2",
+  "files": {
+    "/Users/taufiqueansari/Desktop/prototype_2/src/contracts/PrivacyContract.sol": {
+      "lastModificationDate": 1739040592401,
+      "contentHash": "0898aa2ff3efaeffdb1ffb52333ab388",
+      "sourceName": "src/contracts/PrivacyContract.sol",
+      "solcConfig": {
+        "version": "0.8.19",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "PrivacyContract"
+      ]
+    }
+  }
+}

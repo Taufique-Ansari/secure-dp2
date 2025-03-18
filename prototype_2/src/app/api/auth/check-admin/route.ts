@@ -7,15 +7,30 @@ export async function POST(req: Request) {
     const { email } = await req.json();
     
     if (!email) {
-      return NextResponse.json({ isAdmin: false });
+      return NextResponse.json(
+        { isAdmin: false, message: 'Email is required' },
+        { status: 400 }
+      );
     }
 
     await dbConnect();
     const user = await UserModel.findOne({ email });
     
-    return NextResponse.json({ isAdmin: user?.isAdmin || false });
+    if (!user) {
+      return NextResponse.json(
+        { isAdmin: false, message: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      isAdmin: user.isAdmin
+    });
   } catch (error) {
     console.error('Error checking admin status:', error);
-    return NextResponse.json({ isAdmin: false });
+    return NextResponse.json(
+      { isAdmin: false, message: 'Error checking admin status' },
+      { status: 500 }
+    );
   }
 } 

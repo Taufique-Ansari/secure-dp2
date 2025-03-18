@@ -4,14 +4,15 @@ import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 
 interface Props {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function ProductPage({ params }: Props) {
   try {
-    const product = await getProduct(params.id);
+    const { id } = await params;
+    const product = await getProduct(id);
     
     if (!product) {
       return notFound();

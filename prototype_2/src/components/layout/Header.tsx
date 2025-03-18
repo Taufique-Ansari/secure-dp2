@@ -4,46 +4,23 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ShoppingCart, Search, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useSelector } from 'react-redux';
 import { RootState } from "@/store/store";
 import { useSession, signOut } from 'next-auth/react';
 import SearchBar from '@/components/SearchBar';
+import { useAdmin } from '@/hooks/useAdmin';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [mounted, setMounted] = useState(false);
   const cartItems = useSelector((state: RootState) => state.cart.items);
   const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
+  const isAdmin = useAdmin();
 
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  useEffect(() => {
-    const checkAdminStatus = async () => {
-      if (session?.user?.email) {
-        try {
-          const response = await fetch('/api/auth/check-admin', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ email: session.user.email }),
-          });
-          const data = await response.json();
-          setIsAdmin(data.isAdmin);
-        } catch (error) {
-          console.error('Error checking admin status:', error);
-          setIsAdmin(false);
-        }
-      }
-    };
-
-    checkAdminStatus();
-  }, [session]);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
@@ -63,7 +40,7 @@ export default function Header() {
               <Link href="/privacy-demo" className="hover:text-primary">
                 Privacy Demo
               </Link>
-              {isAdmin && (
+              {session?.user?.isAdmin && (
                 <Link href="/admin" className="hover:text-primary">
                   Admin Dashboard
                 </Link>
@@ -123,7 +100,7 @@ export default function Header() {
             <Link href="/privacy-demo" className="block px-3 py-2 rounded-md hover:bg-primary-foreground">
               Privacy Demo
             </Link>
-            {isAdmin && (
+            {session?.user?.isAdmin && (
               <Link href="/admin" className="block px-3 py-2 rounded-md hover:bg-primary-foreground">
                 Admin Dashboard
               </Link>

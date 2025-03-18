@@ -62,30 +62,10 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (session?.user) {
+        session.user.id = token.id as string;
         session.user.isAdmin = token.isAdmin as boolean;
       }
       return session;
-    },
-    async signIn({ user, account }) {
-      if (account?.provider === 'google') {
-        try {
-          await dbConnect();
-          const existingUser = await UserModel.findOne({ email: user.email });
-          
-          if (!existingUser) {
-            await UserModel.create({
-              name: user.name,
-              email: user.email,
-              password: '', // No password for Google users
-              isAdmin: false,
-            });
-          }
-        } catch (error) {
-          console.error('Error during Google sign in:', error);
-          return false;
-        }
-      }
-      return true;
     }
   }
 }; 

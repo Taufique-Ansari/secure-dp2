@@ -1,58 +1,75 @@
 import { NextResponse } from 'next/server';
 import { dbConnect } from '@/lib/mongodb';
 import { ProductModel } from '@/models/Product';
-import { Product } from '@/types';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
-export async function GET(req: Request) {
+// GET /api/products - Get all products
+export async function GET() {
   try {
     await dbConnect();
+    const products = await ProductModel.find({}).sort({ createdAt: -1 });
     
-    const { searchParams } = new URL(req.url);
-    const featured = searchParams.get('featured');
-    const category = searchParams.get('category');
-    
-    let query: Record<string, any> = {};
-    
-    if (featured === 'true') {
-      query.featured = true;
-    }
-    
-    if (category) {
-      query.category = category;
-    }
-    
-    const products = await ProductModel.find(query)
-      .sort({ createdAt: -1 })
-      .lean<Product[]>();
-
-    // Transform _id to string and ensure type safety
-    const transformedProducts: Product[] = products.map(product => ({
-      ...product,
-      _id: product._id.toString(),
-    }));
-    
-    return NextResponse.json(transformedProducts);
+    return NextResponse.json({ 
+      success: true, 
+      products 
+    });
   } catch (error) {
     console.error('Error fetching products:', error);
     return NextResponse.json(
-      { message: 'Error fetching products' },
+      { success: false, message: 'Failed to fetch products' },
       { status: 500 }
     );
   }
 }
 
+// POST /api/products - Create a new product
 export async function POST(req: Request) {
   try {
-    await dbConnect();
+    const session = await getServerSession(authOptions);
+    
+    // Check if user is authenticated and is an admin
+    if (!session || !session.user.isAdmin) {
+      return NextResponse.json(
+        { success: false, message: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
     
     const body = await req.json();
-    const product = await ProductModel.create(body);
     
-    return NextResponse.json(product, { status: 201 });
+    // Validate required fields
+    const requiredFields = ['name', 'price', 'description', 'category', 'image', 'stock'];
+    for (const field of requiredFields) {
+      if (!body[field]) {
+        return NextResponse.json(
+          { success: false, message: `${field} is required` },
+          { status: 400 }
+        );
+      }
+    }
+    
+    await dbConnect();
+    
+    const newProduct = new ProductModel({
+      name: body.name,
+      price: body.price,
+      description: body.description,
+      category: body.category,
+      image: body.image,
+      stock: body.stock
+    });
+    
+    await newProduct.save();
+    
+    return NextResponse.json(
+      { success: true, product: newProduct },
+      { status: 201 }
+    );
   } catch (error) {
     console.error('Error creating product:', error);
     return NextResponse.json(
-      { message: 'Error creating product' },
+      { success: false, message: 'Failed to create product' },
       { status: 500 }
     );
   }
